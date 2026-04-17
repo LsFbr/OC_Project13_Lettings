@@ -38,6 +38,6 @@ class Migration(migrations.Migration):
 
     # Copy addresses first to avoid foreign key breaks
     operations = [
-        migrations.RunPython(copy_addresses),
-        migrations.RunPython(copy_lettings),
+        migrations.RunPython(copy_addresses, migrations.RunPython.noop),
+        migrations.RunPython(copy_lettings, migrations.RunPython.noop),
     ]
