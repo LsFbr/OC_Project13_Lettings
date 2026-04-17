@@ -8,5 +8,5 @@ urlpatterns = [
     path('lettings/', include('lettings.urls')),
     path('profiles/', include('profiles.urls')),
     path('admin/', admin.site.urls),
-    path('500-error/', views.trigger_500_error),
+    path('500-error/', views.trigger_500_error), # For testing 500 errors
 ]
