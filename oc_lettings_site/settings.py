@@ -1,3 +1,9 @@
+"""Django settings for the OC Lettings project.
+
+This module defines the global configuration of the application, including
+installed apps, middleware, templates, database, and static files handling.
+"""
+
 import os
 
 from pathlib import Path

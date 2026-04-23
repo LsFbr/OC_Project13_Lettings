@@ -1,3 +1,11 @@
+"""Root URL configuration for the OC Lettings project.
+
+This module routes requests to the appropriate applications:
+- lettings
+- profiles
+- admin interface
+"""
+
 from django.contrib import admin
 from django.urls import path, include
 
@@ -8,5 +16,5 @@ urlpatterns = [
     path('lettings/', include('lettings.urls')),
     path('profiles/', include('profiles.urls')),
     path('admin/', admin.site.urls),
-    path('500-error/', views.trigger_500_error), # For testing 500 errors
+    path('500-error/', views.trigger_500_error),  # For testing 500 errors
 ]

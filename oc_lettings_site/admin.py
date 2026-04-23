@@ -1,3 +1,9 @@
+"""Admin configuration for OC Lettings.
+
+Registers models from the lettings and profiles applications
+to make them accessible via the Django admin interface.
+"""
+
 from django.contrib import admin
 
 from lettings.models import Letting

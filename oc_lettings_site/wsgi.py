@@ -1,3 +1,8 @@
+"""WSGI entry point for OC Lettings.
+
+Used to serve the application in production environments.
+"""
+
 import os
 
 from django.core.wsgi import get_wsgi_application
