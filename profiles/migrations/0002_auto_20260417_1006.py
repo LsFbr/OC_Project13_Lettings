@@ -2,6 +2,8 @@ from django.db import migrations
 
 
 def copy_profiles(apps, schema_editor):
+    """Copy existing Profile data from oc_lettings_site to the new profiles app."""
+
     OldProfile = apps.get_model("oc_lettings_site", "Profile")
     NewProfile = apps.get_model("profiles", "Profile")
 
