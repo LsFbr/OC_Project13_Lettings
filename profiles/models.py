@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     """Represents additional information linked to a Django User."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="new_profile")
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     favorite_city = models.CharField(max_length=64, blank=True)
 
     def __str__(self):
