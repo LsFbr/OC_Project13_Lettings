@@ -8,7 +8,10 @@ from lettings.models import Letting, Address
 
 @pytest.mark.django_db
 def test_index_view_empty(client):
-    """Ensure the index view returns HTTP 200 and uses the correct template with the correct content."""
+    """
+    Ensure the index view returns HTTP 200
+    and uses the correct template with the correct content.
+    """
 
     response = client.get(reverse("lettings:index"))
     content = response.content.decode()
@@ -18,9 +21,13 @@ def test_index_view_empty(client):
     assert response.status_code == 200
     assertTemplateUsed(response, "lettings/index.html")
 
+
 @pytest.mark.django_db
 def test_index_view_not_empty(client):
-    """Ensure the index view returns HTTP 200 and uses the correct template with the correct content."""
+    """
+    Ensure the index view returns HTTP 200
+    and uses the correct template with the correct content.
+    """
 
     address = Address.objects.create(
         number=10,
@@ -43,7 +50,11 @@ def test_index_view_not_empty(client):
 
 @pytest.mark.django_db
 def test_letting_view(client):
-    """Ensure the letting view returns HTTP 200 and uses the correct template with the correct content."""
+    """
+    Ensure the letting view returns HTTP 200
+    and uses the correct template with the correct content.
+    """
+
     address = Address.objects.create(
         number=10,
         street="Main Street",

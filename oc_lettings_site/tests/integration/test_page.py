@@ -5,7 +5,10 @@ from pytest_django.asserts import assertTemplateUsed
 
 
 def test_index_view(client):
-    """Ensure the index view returns HTTP 200 and uses the correct template with the correct content."""
+    """
+    Ensure the index view returns HTTP 200
+    and uses the correct template with the correct content.
+    """
 
     response = client.get(reverse("index"))
     content = response.content.decode()
@@ -17,8 +20,10 @@ def test_index_view(client):
 
 
 def test_500_error_view(client):
-    """Ensure the 500 error is returned when a server error occurs,
-    and the correct template is used with the correct content."""
+    """
+    Ensure the 500 error is returned when a server error occurs,
+    and the correct template is used with the correct content.
+    """
 
     # disable Django's default exception handling to test the status code
     client.raise_request_exception = False
@@ -34,8 +39,10 @@ def test_500_error_view(client):
 
 # //404 error view tests
 def test_404_page(client):
-    """Ensure the 404 error is returned when a non-existent URL is accessed,
-    and the correct template is used with the correct content."""
+    """
+    Ensure the 404 error is returned when a non-existent URL is accessed,
+    and the correct template is used with the correct content.
+    """
 
     response = client.get("/url-inexistante/")
     content = response.content.decode()
