@@ -4,6 +4,7 @@ Handles display of rental listings and individual letting details.
 """
 
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from .models import Letting
 
 
@@ -27,7 +28,7 @@ def letting(request, letting_id):
     :param letting_id: ID of the letting to display
     :return: Rendered page with letting details
     """
-    letting = Letting.objects.get(id=letting_id)
+    letting = get_object_or_404(Letting, id=letting_id)
     context = {
         'title': letting.title,
         'address': letting.address,
