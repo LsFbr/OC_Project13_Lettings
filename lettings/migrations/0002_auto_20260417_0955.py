@@ -2,7 +2,13 @@ from django.db import migrations
 
 
 def copy_addresses(apps, schema_editor):
-    OldAddress = apps.get_model("oc_lettings_site", "Address")
+    """Copy existing Address data from oc_lettings_site to the new lettings app."""
+
+    try:
+        OldAddress = apps.get_model("oc_lettings_site", "Address")
+    except LookupError:
+        return
+
     NewAddress = apps.get_model("lettings", "Address")
 
     for old in OldAddress.objects.all():
@@ -18,7 +24,13 @@ def copy_addresses(apps, schema_editor):
 
 
 def copy_lettings(apps, schema_editor):
-    OldLetting = apps.get_model("oc_lettings_site", "Letting")
+    """Copy existing Letting data from oc_lettings_site to the new lettings app."""
+
+    try:
+        OldLetting = apps.get_model("oc_lettings_site", "Letting")
+    except LookupError:
+        return
+
     NewLetting = apps.get_model("lettings", "Letting")
 
     for old in OldLetting.objects.all():

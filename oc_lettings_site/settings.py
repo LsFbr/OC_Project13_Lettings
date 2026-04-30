@@ -1,3 +1,9 @@
+"""Django settings for the OC Lettings project.
+
+This module defines the global configuration of the application, including
+installed apps, middleware, templates, database, and static files handling.
+"""
+
 import os
 
 from pathlib import Path
@@ -13,9 +19,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -101,8 +107,6 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 

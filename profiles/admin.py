@@ -1,3 +1,4 @@
-from django.contrib import admin
+"""Admin module for the profiles application.
 
-# Register your models here.
+No custom admin configuration is currently defined.
+"""

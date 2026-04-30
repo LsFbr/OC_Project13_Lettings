@@ -1,8 +1,16 @@
+"""
+Command-line utility for managing the OC Lettings Django project.
+
+Provides commands such as runserver, migrate, and test.
+"""
+
 import os
 import sys
 
 
 def main():
+    """Run administrative tasks for the Django project."""
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'oc_lettings_site.settings')
     try:
         from django.core.management import execute_from_command_line
