@@ -75,3 +75,14 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
+
+## Surveillance des erreurs avec Sentry
+
+L'application utilise Sentry pour surveiller les erreurs d'exécution et les journaux applicatifs.
+
+Variables d'environnement requises :
+
+- `SENTRY_DSN` : DSN du projet Sentry.
+- `SENTRY_ENVIRONMENT` : environnement de l'application, par exemple `development` ou `production`.
+
+Le DSN Sentry ne doit jamais être inclus dans le code source. Il doit être configuré en tant que variable d'environnement, aussi bien en local que sur la plateforme de déploiement.
