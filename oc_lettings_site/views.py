@@ -28,5 +28,5 @@ def trigger_500_error(request):
     :param request: HTTP request
     :raises ZeroDivisionError: Always raised to simulate a server error
     """
-    logger.error("Sentry test error route requested")
+    logger.info("Sentry test error route requested")
     return 1 / 0
