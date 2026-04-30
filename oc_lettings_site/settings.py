@@ -135,7 +135,9 @@ if SENTRY_DSN:
             DjangoIntegration(),
         ],
         environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
+        release=os.getenv("SENTRY_RELEASE"),
         send_default_pii=False,
+        include_local_variables=False,
         enable_logs=True,
     )
 
@@ -157,27 +159,5 @@ LOGGING = {
     "root": {
         "handlers": ["console"],
         "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
-        "oc_lettings_site": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
-        "lettings": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
-        "profiles": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
     },
 }
