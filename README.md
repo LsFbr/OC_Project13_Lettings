@@ -80,6 +80,8 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 L'application utilise Sentry pour surveiller les erreurs d'exécution et les journaux applicatifs.
 
+Vous devez créer un projet Sentry et obtenir le DSN (clé API) pour pouvoir utiliser Sentry.
+
 Variables d'environnement requises :
 
 - `SENTRY_DSN` : DSN du projet Sentry.
