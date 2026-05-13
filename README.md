@@ -76,15 +76,39 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
 
-## Surveillance des erreurs avec Sentry
+## Mise en place de Sentry
 
-L'application utilise Sentry pour surveiller les erreurs d'exécution et les journaux applicatifs.
+L’application utilise Sentry pour surveiller les erreurs d’exécution et faire remonter les logs applicatifs utiles au diagnostic.
 
-Vous devez créer un projet Sentry et obtenir le DSN (clé API) pour pouvoir utiliser Sentry.
+Sentry est configuré dans `oc_lettings_site/settings.py` avec le SDK Python officiel et l’intégration Django. Le DSN Sentry est lu depuis les variables d’environnement afin de ne pas stocker d’information sensible dans le code source.
 
-Variables d'environnement requises :
+### 1. Créer un projet Sentry
 
-- `SENTRY_DSN` : DSN du projet Sentry.
-- `SENTRY_ENVIRONMENT` : environnement de l'application, par exemple `development` ou `production`.
+1. Créer un compte ou se connecter à Sentry.
+2. Créer un nouveau projet.
+3. Choisir `Django` comme plateforme du projet.
+4. Copier le DSN fourni par Sentry.
 
-Le DSN Sentry ne doit jamais être inclus dans le code source. Il doit être configuré en tant que variable d'environnement, aussi bien en local que sur la plateforme de déploiement.
+Le DSN permet au SDK Sentry d’envoyer les événements vers le bon projet. Il ne doit jamais être écrit directement dans le code source.
+
+### 2. Configurer les variables d’environnement
+
+Les variables suivantes doivent être configurées en local, dans Docker ou sur la plateforme de déploiement :
+
+* `SENTRY_DSN` : DSN du projet Sentry.
+* `SENTRY_ENVIRONMENT` : environnement courant, par exemple `development` ou `production`.
+* `SENTRY_RELEASE` : version de l’application, par exemple `lettings@2.0.0`.
+* `DJANGO_LOG_LEVEL` : niveau minimal des logs, par défaut `INFO`.
+
+Exemple de configuration locale dans un fichier `.env` :
+
+```env
+SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+SENTRY_ENVIRONMENT=development
+SENTRY_RELEASE=lettings@2.0.0
+DJANGO_LOG_LEVEL=INFO
+```
+
+Le fichier `.env` ne doit pas être commité.
+
+En production, ces variables doivent être renseignées directement dans l’environnement de la plateforme de déploiement.
