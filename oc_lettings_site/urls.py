@@ -18,3 +18,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('500-error/', views.trigger_500_error, name='500-error'),  # For testing 500 errors
 ]
+
+handler404 = "oc_lettings_site.views.custom_404"
+handler500 = "oc_lettings_site.views.custom_500"
