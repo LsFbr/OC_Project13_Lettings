@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: "pip"
@@ -29,7 +29,6 @@ jobs:
           echo "SECRET_KEY=ci-secret-key" >> .env
           echo "DEBUG=True" >> .env
           echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
-          echo "DJANGO_LOG_LEVEL=INFO" >> .env
 
       - name: Run linting
         run: flake8
