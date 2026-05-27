@@ -1,0 +1,10 @@
+venv/
+venv_lettings/
+.env
+.git/
+.gitignore
+.pytest_cache/
+.coverage
+__pycache__/
+*.pyc
+staticfiles/

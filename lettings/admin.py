@@ -1,3 +1,4 @@
-from django.contrib import admin
+"""Admin configuration module for the lettings application.
 
-# Register your models here.
+No custom admin configuration is currently defined.
+"""

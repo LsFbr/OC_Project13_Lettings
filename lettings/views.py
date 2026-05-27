@@ -1,17 +1,57 @@
-from django.shortcuts import render
+"""Views for the lettings app.
+
+Handles display of rental listings and individual letting details.
+"""
+import logging
+from django.shortcuts import render, get_object_or_404
+from django.http import Http404
 from .models import Letting
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
-    lettings_list = Letting.objects.all()
-    context = {'lettings_list': lettings_list}
-    return render(request, 'lettings/index.html', context)
+    """
+    Display a list of all lettings.
+
+    :param request: HTTP request
+    :return: Rendered page with all lettings
+    """
+    logger.info("Lettings index page requested")
+
+    try:
+        lettings_list = Letting.objects.all()
+        context = {'lettings_list': lettings_list}
+        return render(request, 'lettings/index.html', context)
+    except Exception:
+        logger.exception("500 Server Error while loading lettings index page")
+        raise
 
 
 def letting(request, letting_id):
-    letting = Letting.objects.get(id=letting_id)
-    context = {
-        'title': letting.title,
-        'address': letting.address,
-    }
-    return render(request, 'lettings/letting.html', context)
+    """
+    Display the details of a specific letting.
+
+    :param request: HTTP request
+    :param letting_id: ID of the letting to display
+    :return: Rendered page with letting details
+    :raises Http404: If the letting does not exist
+    """
+    logger.info("Letting detail page requested", extra={"letting_id": letting_id})
+
+    try:
+        letting = get_object_or_404(Letting, id=letting_id)
+        context = {
+            'title': letting.title,
+            'address': letting.address,
+        }
+        return render(request, 'lettings/letting.html', context)
+    except Http404:
+        logger.warning("Letting not found for letting_id=%s", letting_id)
+        raise
+    except Exception:
+        logger.exception(
+            "500 Server Error while loading letting detail for letting_id=%s",
+            letting_id,
+        )
+        raise
