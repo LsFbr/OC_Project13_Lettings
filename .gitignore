@@ -3,3 +3,4 @@
 venv_lettings
 .coverage
 .env
+staticfiles/
