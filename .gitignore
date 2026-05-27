@@ -4,3 +4,5 @@ venv_lettings
 .coverage
 .env
 staticfiles/
+deploy.zip
+AWS-test-deploy/deploy.zip
