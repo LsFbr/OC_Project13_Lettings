@@ -60,57 +60,58 @@ jobs:
           tags: | # TODO: change to oc-lettings:${{ github.sha }} and oc-lettings:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/oc-lettings:test-${{ github.sha }} 
             ${{ secrets.DOCKERHUB_USERNAME }}/oc-lettings:test-latest
-    deploy-to-aws:
-      needs: build-and-push-docker
-      name: Deploy to AWS Elastic Beanstalk
-      runs-on: ubuntu-latest
 
-      if: github.ref == 'refs/heads/feat/CI-CD_pipeline_and_deployment' # TODO: change to master
+  deploy-to-aws:
+    needs: build-and-push-docker
+    name: Deploy to AWS Elastic Beanstalk
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
+    if: github.ref == 'refs/heads/feat/CI-CD_pipeline_and_deployment' # TODO: change to master
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v6
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-        - name: Generate Dockerrun.aws.json
-          run: | # TODO: change image name to oc-lettings:${{ github.sha }}
-            cat > Dockerrun.aws.json <<EOF
-            {
-              "AWSEBDockerrunVersion": "1",
-              "Image": {
-                "Name": "${{ secrets.DOCKERHUB_USERNAME }}/oc-lettings:test-${{ github.sha }}",
-                "Update": "true"
-              },
-              "Ports": [
-                {
-                  "ContainerPort": 8000
-                }
-              ]
-            }
-            EOF
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-        - name: Create deployment package
-          run: zip deploy.zip Dockerrun.aws.json
+      - name: Generate Dockerrun.aws.json
+        run: | # TODO: change image name to oc-lettings:${{ github.sha }}
+          cat > Dockerrun.aws.json <<EOF
+          {
+            "AWSEBDockerrunVersion": "1",
+            "Image": {
+              "Name": "${{ secrets.DOCKERHUB_USERNAME }}/oc-lettings:test-${{ github.sha }}",
+              "Update": "true"
+            },
+            "Ports": [
+              {
+                "ContainerPort": 8000
+              }
+            ]
+          }
+          EOF
 
-        - name: Upload deployment package to S3
-          run: |
-            aws s3 cp deploy.zip s3://${{ secrets.EB_S3_BUCKET }}/deployments/oc-lettings-${{ github.sha }}.zip
+      - name: Create deployment package
+        run: zip deploy.zip Dockerrun.aws.json
 
-        - name: Create Elastic Beanstalk application version
-          run: |
-            aws elasticbeanstalk create-application-version \
-              --application-name "${{ secrets.EB_APPLICATION_NAME }}" \
-              --version-label "github-${{ github.sha }}" \
-              --source-bundle S3Bucket="${{ secrets.EB_S3_BUCKET }}",S3Key="deployments/oc-lettings-${{ github.sha }}.zip"
+      - name: Upload deployment package to S3
+        run: |
+          aws s3 cp deploy.zip s3://${{ secrets.EB_S3_BUCKET }}/deployments/oc-lettings-${{ github.sha }}.zip
 
-        - name: Deploy application version to environment
-          run: |
-            aws elasticbeanstalk update-environment \
-              --environment-name "${{ secrets.EB_ENVIRONMENT_NAME }}" \
-              --version-label "github-${{ github.sha }}"
+      - name: Create Elastic Beanstalk application version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.EB_APPLICATION_NAME }}" \
+            --version-label "github-${{ github.sha }}" \
+            --source-bundle S3Bucket="${{ secrets.EB_S3_BUCKET }}",S3Key="deployments/oc-lettings-${{ github.sha }}.zip"
+
+      - name: Deploy application version to environment
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "${{ secrets.EB_ENVIRONMENT_NAME }}" \
+            --version-label "github-${{ github.sha }}"
