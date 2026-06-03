@@ -6,3 +6,4 @@ venv_lettings
 staticfiles/
 deploy.zip
 AWS-test-deploy/deploy.zip
+docs/build/
