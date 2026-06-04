@@ -97,3 +97,6 @@ La documentation technique est générée avec Sphinx et publiée sur Read the D
 
 À chaque modification poussée sur la branche suivie par Read the Docs, un nouveau
 build de documentation est lancé automatiquement.
+
+Les étapes détaillées de configuration du déploiement, des secrets GitHub Actions
+et des accès AWS sont décrites dans le README du dépôt.

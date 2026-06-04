@@ -1,7 +1,7 @@
 Base de données et modèles
 ==========================
 
-L'application utilise une base de données SQLite pour l'environnement local.
+L'application utilise une base de données SQLite pour le développement local.
 Le fichier ``oc-lettings-site.sqlite3`` est inclus dans le dépôt avec les
 données nécessaires au fonctionnement de l'application.
 

@@ -12,7 +12,7 @@ Les éléments suivants doivent être disponibles sur le poste de développement
 * Git ;
 * un accès au dépôt GitHub du projet ;
 * un environnement virtuel Python ;
-* SQLite, utilisé comme base de données locale.
+* SQLite, utilisé comme base de données locale via le fichier ``oc-lettings-site.sqlite3`` fourni avec le projet.
 
 Cloner le dépôt
 ---------------
