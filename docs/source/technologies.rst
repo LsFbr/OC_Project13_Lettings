@@ -34,7 +34,7 @@ Base de données
      - Mécanisme de suivi de l'évolution du schéma de base de données.
 
 Qualité, tests et supervision
-----------------
+-----------------------------
 
 .. list-table::
    :header-rows: 1
