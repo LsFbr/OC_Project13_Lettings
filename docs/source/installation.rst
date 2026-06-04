@@ -87,15 +87,6 @@ Variables principales :
      - ``INFO``
      - Niveau de journalisation utilisé par l'application.
 
-Préparer la base de données
----------------------------
-
-Appliquer les migrations Django :
-
-.. code-block:: powershell
-
-   python manage.py migrate
-
 Lancer le serveur de développement
 ----------------------------------
 
