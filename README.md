@@ -1,6 +1,4 @@
-## Résumé
-
-Site web d'Orange County Lettings
+# Site web d'Orange County Lettings
 
 ## Développement local
 
@@ -76,87 +74,89 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
 
-## Mise en place de Sentry
+## Détection, journalisation et analyse des erreurs
 
-L’application utilise Sentry pour surveiller les erreurs d’exécution et faire remonter les logs applicatifs utiles au diagnostic.
+Le projet intègre Sentry pour la détection, la journalisation et l’analyse des erreurs applicatives.
 
-Sentry est configuré dans `oc_lettings_site/settings.py` avec le SDK Python officiel et l’intégration Django. Le DSN Sentry est lu depuis les variables d’environnement afin de ne pas stocker d’information sensible dans le code source.
+L’application utilise le module standard Python `logging` pour produire des logs, et Sentry pour centraliser les erreurs et faciliter leur diagnostic.
 
-### 1. Créer un projet Sentry
+### Mise en place d’un nouvel environnement
 
-1. Créer un compte ou se connecter à Sentry.
-2. Créer un nouveau projet.
-3. Choisir `Django` comme plateforme du projet.
-4. Copier le DSN fourni par Sentry.
+1. Créer un compte Sentry ou se connecter à Sentry.
+2. Créer un nouveau projet de type Django.
+3. Récupérer le DSN du projet.
+4. Ajouter les variables d’environnement nécessaires :
 
-Le DSN permet au SDK Sentry d’envoyer les événements vers le bon projet. Il ne doit jamais être écrit directement dans le code source.
+```env
+SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+SENTRY_ENVIRONMENT=production
+SENTRY_RELEASE=lettings@2.0.0
+DJANGO_LOG_LEVEL=INFO
+```
 
-### 2. Configurer les variables d’environnement
+5. Redémarrer l’application.
 
-Les variables suivantes doivent être configurées en local, dans Docker ou sur la plateforme de déploiement :
+### Configuration actuelle
 
-* `SECRET_KEY` : clé secrète pour la sécurité de l'application.
-* `DEBUG=False` : mode de développement. Par défaut `False`.
-* `ALLOWED_HOSTS=localhost,127.0.0.1` : liste des hôtes autorisés. Par défaut `localhost,127.0.0.1`.
-* `SENTRY_DSN` : DSN du projet Sentry.
-* `SENTRY_ENVIRONMENT` : environnement courant, par exemple `development` ou `production`.
-* `SENTRY_RELEASE` : version de l’application, par exemple `lettings@2.0.0`.
-* `DJANGO_LOG_LEVEL` : niveau minimal des logs, par défaut `INFO`.
+Le projet utilise les paramètres suivants :
 
-Exemple de configuration locale dans un fichier `.env` :
+* Sentry est activé uniquement si `SENTRY_DSN` est défini ;
+* `SENTRY_ENVIRONMENT` permet d’identifier l’environnement courant ;
+* `SENTRY_RELEASE` permet d’identifier la version de l’application ;
+* `DJANGO_LOG_LEVEL` définit le niveau minimal des logs ;
+* `send_default_pii=False` limite l’envoi automatique de données personnelles ;
+* `include_local_variables=False` évite l’envoi des variables locales dans les événements Sentry.
 
+### Désactivation
 
+Pour désactiver Sentry sur un environnement donné, supprimer ou vider la variable d’environnement :
 
-Le fichier `.env` ne doit pas être commité.
+```env
+SENTRY_DSN=
+```
 
-En production, ces variables doivent être renseignées directement dans l’environnement de la plateforme de déploiement.
+### Recommandations de sécurité
+
+* ne jamais versionner le fichier `.env` ;
+* ne jamais écrire le DSN directement dans le code source ;
+* ne jamais journaliser de secrets, mots de passe, tokens ou clés privées ;
+* configurer les variables d’environnement séparément pour chaque environnement.
 
 ## Déploiement
 
-Cette section décrit le fonctionnement du déploiement, la configuration requise et les étapes à suivre pour déployer une nouvelle version de l’application.
+Le projet utilise une pipeline CI/CD basée sur GitHub Actions.
 
-### 1. Récapitulatif haut niveau du fonctionnement du déploiement
+À chaque `push` sur le repository :
 
-Le déploiement est automatisé avec GitHub Actions.
+1. analyse du code avec Flake8 ;
+2. exécution des tests avec pytest ;
+3. vérification de la couverture de test minimale de 80 %.
 
-À chaque `push` sur le repository, le workflow GitHub Actions est déclenché.
+À chaque `push` sur la branche principale (`master`), si les tests réussissent :
 
-Le job `lint-and-tests` est exécuté à chaque `push`, quelle que soit la branche. Il installe les dépendances, lance `flake8`, puis exécute les tests avec une couverture minimale attendue de 80 %.
+4. construction d’une image Docker ;
+5. publication de l’image sur Docker Hub avec deux tags :
 
-Les jobs suivants ne sont exécutés que si le `push` concerne la branche `master` et si le job précédent a réussi :
+   * `latest` ;
+   * le hash du commit ;
+6. déploiement de l’image sur AWS Elastic Beanstalk.
 
-1. `build-and-push-docker` : construit une image Docker de l’application, puis la publie sur Docker Hub ;
-2. `deploy-to-aws` : génère un fichier `Dockerrun.aws.json`, crée une archive `deploy.zip`, l’envoie dans le bucket S3 Elastic Beanstalk, crée une nouvelle version d’application Elastic Beanstalk, puis met à jour l’environnement AWS.
+L’image Docker est utilisée pour :
 
-Le déploiement ne démarre donc que si les tests et la construction de l’image Docker réussissent.
+* l’exécution locale via Docker ;
+* le déploiement sur AWS Elastic Beanstalk.
 
-L’application est hébergée sur AWS Elastic Beanstalk avec la plateforme Docker. Elastic Beanstalk ne construit pas lui-même l’image Docker : il récupère l’image publiée sur Docker Hub grâce au fichier `Dockerrun.aws.json` généré par GitHub Actions.
+### Pré-requis
 
-Les fichiers statiques sont gérés différemment selon l’environnement :
+#### Environnement local
 
-* en local, ils sont collectés dans `staticfiles/` et servis par WhiteNoise ;
-* sur AWS, ils sont envoyés vers un bucket S3 dédié grâce à `django-storages` lorsque `USE_S3=True`.
-
-### 2. Configuration requise pour que le déploiement fonctionne correctement
-
-Avant de lancer un déploiement, les éléments suivants doivent être configurés.
+* Docker ;
+* Git ;
+* fichier `.env` local configuré.
 
 #### GitHub Actions
 
-Le repository GitHub doit contenir le fichier suivant :
-
-```text
-.github/workflows/ci.yml
-```
-
-Ce fichier définit les jobs de CI/CD. Il doit contenir :
-
-* un job de linting et de tests ;
-* un job de construction et publication de l’image Docker ;
-* un job de déploiement vers AWS Elastic Beanstalk ;
-* des dépendances entre les jobs avec `needs`, afin que le déploiement ne soit exécuté qu’après la réussite des étapes précédentes.
-
-Les secrets suivants doivent être configurés dans GitHub :
+Les secrets suivants doivent être configurés dans GitHub Actions :
 
 ```text
 DOCKERHUB_USERNAME
@@ -169,59 +169,144 @@ EB_ENVIRONMENT_NAME
 EB_S3_BUCKET
 ```
 
-Rôle de chaque secret :
+Ces secrets sont utilisés par la pipeline CI/CD :
 
 * `DOCKERHUB_USERNAME` : nom du compte Docker Hub ;
 * `DOCKERHUB_TOKEN` : token Docker Hub utilisé pour publier l’image ;
 * `AWS_ACCESS_KEY_ID` : identifiant de la clé d’accès IAM utilisée par GitHub Actions ;
-* `AWS_SECRET_ACCESS_KEY` : secret de la clé d’accès IAM utilisée par GitHub Actions ;
-* `AWS_REGION` : région AWS de déploiement, par exemple `eu-west-3` ;
+* `AWS_SECRET_ACCESS_KEY` : clé secrète IAM utilisée par GitHub Actions ;
+* `AWS_REGION` : région AWS utilisée pour le déploiement ;
 * `EB_APPLICATION_NAME` : nom de l’application Elastic Beanstalk ;
 * `EB_ENVIRONMENT_NAME` : nom de l’environnement Elastic Beanstalk ;
-* `EB_S3_BUCKET` : bucket S3 technique utilisé par Elastic Beanstalk pour stocker les archives de déploiement.
+* `EB_S3_BUCKET` : bucket S3 technique utilisé par Elastic Beanstalk.
 
-Aucune valeur sensible ne doit être écrite directement dans le code, dans le README ou dans `ci.yml`.
+#### Déploiement AWS
 
-#### Docker Hub
+* Compte AWS ;
+* accès à la console web AWS ;
+* application Elastic Beanstalk ;
+* environnement Elastic Beanstalk basé sur Docker ;
+* bucket S3 dédié aux fichiers statiques ;
+* utilisateur IAM dédié à GitHub Actions ;
+* permissions IAM permettant à GitHub Actions de déployer sur Elastic Beanstalk.
 
-Un repository Docker Hub doit exister pour l’application.
+### Déploiement local avec Docker
 
-Dans ce projet, l’image publiée par le workflow est de la forme :
+Vérifier dans Docker Hub que l’image Docker est bien disponible publiquement.
 
-```text
-<DOCKERHUB_USERNAME>/oc-lettings:<tag>
+Récupérer la dernière image publiée :
+
+```bash
+docker pull <DOCKERHUB_USERNAME>/oc-lettings:latest
 ```
 
-Le workflow publie deux tags :
+Lancer l’application :
 
-```text
-<DOCKERHUB_USERNAME>/oc-lettings:<hash_du_commit>
-<DOCKERHUB_USERNAME>/oc-lettings:latest
+```bash
+docker run --name oc-lettings-container --env-file .env -p 8000:8000 <DOCKERHUB_USERNAME>/oc-lettings:latest
 ```
 
-Le tag basé sur le hash du commit permet de relier une version déployée à un commit précis. Le tag `latest` permet de récupérer facilement la dernière image publiée.
+Accéder à l’application :
 
-#### AWS Elastic Beanstalk
+```text
+http://localhost:8000/
+```
 
-AWS doit contenir :
+Le fichier `.env` local doit contenir au minimum :
 
-* une application Elastic Beanstalk ;
-* un environnement Elastic Beanstalk basé sur la plateforme Docker ;
-* un bucket S3 technique Elastic Beanstalk, généralement nommé sous la forme `elasticbeanstalk-<region>-<account-id>` ;
-* un bucket S3 dédié aux fichiers statiques Django ;
-* un rôle EC2 Elastic Beanstalk autorisé à écrire dans le bucket S3 des fichiers statiques ;
-* un utilisateur IAM dédié à GitHub Actions.
+```env
+SECRET_KEY=<CLE-SECRETE-APPLICATION-DJANGO>
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
 
-L’utilisateur IAM utilisé par GitHub Actions doit avoir les permissions nécessaires pour :
+En local, ne pas définir `USE_S3=True` sauf si des identifiants AWS locaux sont configurés.
 
-* envoyer `deploy.zip` dans le bucket S3 Elastic Beanstalk ;
-* créer une version d’application Elastic Beanstalk ;
+Si l’image locale n’est pas à jour, exécuter :
+
+```bash
+docker rmi <DOCKERHUB_USERNAME>/oc-lettings:latest
+docker pull <DOCKERHUB_USERNAME>/oc-lettings:latest
+```
+
+### Déploiement sur AWS Elastic Beanstalk
+
+#### Étape 1 : création de l’application
+
+1. Se connecter à la console AWS.
+2. Aller dans `Elastic Beanstalk`.
+3. Créer une nouvelle application.
+4. Nommer l’application, par exemple `oc-lettings`.
+
+#### Étape 2 : création de l’environnement
+
+1. Créer un nouvel environnement.
+2. Choisir :
+
+   * `Niveau d’environnement` : `Environnement serveur web` ;
+   * `Plateforme` : `Docker`.
+3. Valider la création de l’environnement.
+
+#### Étape 3 : création de l’utilisateur IAM pour GitHub Actions
+
+1. Aller dans `IAM`.
+2. Créer un utilisateur dédié à GitHub Actions, par exemple `github-actions-deploy`.
+3. Ne pas donner d’accès console à cet utilisateur.
+4. Créer une clé d’accès pour cet utilisateur.
+5. Copier les valeurs :
+
+   * `AWS_ACCESS_KEY_ID` ;
+   * `AWS_SECRET_ACCESS_KEY`.
+6. Ajouter ces valeurs dans les secrets GitHub Actions du repository.
+
+#### Étape 4 : permissions IAM
+
+Créer ou attacher à l’utilisateur IAM `github-actions-deploy` une politique permettant à GitHub Actions de :
+
+* envoyer l’archive de déploiement dans le bucket S3 Elastic Beanstalk ;
+* créer une nouvelle version d’application Elastic Beanstalk ;
 * mettre à jour l’environnement Elastic Beanstalk ;
-* accéder aux ressources AWS utilisées par Elastic Beanstalk pendant le déploiement, notamment S3 et CloudFormation.
+* accéder aux ressources AWS nécessaires au déploiement, notamment :
 
-#### Variables d’environnement Elastic Beanstalk
+  * `Elastic Beanstalk` ;
+  * `S3` ;
+  * `CloudFormation` ;
+  * `EC2` ;
+  * `Auto Scaling`.
 
-Les variables suivantes doivent être définies dans l’environnement Elastic Beanstalk :
+#### Étape 5 : secrets GitHub Actions
+
+Dans le repository GitHub, aller dans :
+
+```text
+Settings > Secrets and variables > Actions
+```
+
+Ajouter les secrets suivants :
+
+```text
+DOCKERHUB_USERNAME
+DOCKERHUB_TOKEN
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+AWS_REGION
+EB_APPLICATION_NAME
+EB_ENVIRONMENT_NAME
+EB_S3_BUCKET
+```
+
+Aucune valeur sensible ne doit être écrite directement dans le code, dans le README ou dans le fichier `.github/workflows/ci.yml`.
+
+#### Étape 6 : configuration des fichiers statiques
+
+1. Créer un bucket S3 dédié aux fichiers statiques.
+2. Autoriser la lecture publique des fichiers contenus dans le dossier `static/`.
+3. Donner au rôle EC2 Elastic Beanstalk les permissions nécessaires pour écrire dans ce bucket.
+4. Configurer Django avec `USE_S3=True`.
+
+#### Étape 7 : configuration des variables d’environnement
+
+Dans l’environnement Elastic Beanstalk, ajouter les propriétés suivantes :
 
 ```text
 SECRET_KEY
@@ -236,197 +321,70 @@ SENTRY_RELEASE
 DJANGO_LOG_LEVEL
 ```
 
-Exemple de configuration AWS :
+Exemple :
 
-```text
+```env
 DEBUG=False
 ALLOWED_HOSTS=oc-lettings-env.eba-tihg3myt.eu-west-3.elasticbeanstalk.com
 USE_S3=True
-AWS_STORAGE_BUCKET_NAME=lsfbr-oc-lettings-static
+AWS_STORAGE_BUCKET_NAME=oc-lettings-static
 AWS_S3_REGION_NAME=eu-west-3
 SENTRY_ENVIRONMENT=production
 DJANGO_LOG_LEVEL=INFO
 ```
 
-`SECRET_KEY` et `SENTRY_DSN` doivent contenir de vraies valeurs propres à l’environnement de déploiement. Elles ne doivent pas être commitées.
+`SECRET_KEY` et `SENTRY_DSN` doivent être renseignées avec de vraies valeurs propres à l’environnement de production.
 
-#### Fichiers statiques
+#### Étape 8 : lancement du déploiement
 
-Le bucket S3 dédié aux fichiers statiques doit être configuré pour permettre la lecture publique des objets situés dans le dossier `static/`.
+Le déploiement complet est déclenché par un `push` sur la branche `master`.
 
-Le rôle EC2 utilisé par Elastic Beanstalk doit avoir le droit d’écrire dans ce bucket afin que la commande suivante, exécutée au démarrage du conteneur, puisse envoyer les fichiers statiques vers S3 :
-
-```bash
-python manage.py collectstatic --noinput
-```
-
-En local, si `USE_S3` n’est pas défini, les fichiers statiques sont collectés dans `staticfiles/` et servis par WhiteNoise. Le dossier `staticfiles/` est généré automatiquement et ne doit pas être commité.
-
-### 3. Étapes nécessaires pour effectuer le déploiement
-
-#### Étape 1 — Vérifier l’état du projet localement
-
-Avant de déployer, vérifier que le projet fonctionne localement :
-
-```bash
-python manage.py check
-flake8
-pytest --cov --cov-fail-under=80
-```
-
-Corriger les erreurs éventuelles avant de continuer.
-
-#### Étape 2 — Vérifier les fichiers à committer
-
-Avant le commit, vérifier l’état Git :
-
-```bash
-git status
-```
-
-Les fichiers générés ne doivent pas être commités, notamment :
-
-```text
-.env
-staticfiles/
-deploy.zip
-```
-
-Le fichier `.env` doit rester local. Les secrets doivent être configurés dans GitHub Actions ou dans Elastic Beanstalk selon leur usage.
-
-#### Étape 3 — Pousser les modifications sur GitHub
-
-Créer un commit puis pousser les modifications. Le job de linting et de tests se lance sur tous les `push` :
-
-```bash
-git add .
-git commit -m "Update application"
-git push
-```
-
-Le `push` déclenche automatiquement le workflow GitHub Actions.
-
-Pour déclencher la conteneurisation et le déploiement, les modifications doivent ensuite être présentes sur la branche `master`. En pratique, il faut fusionner la branche de travail dans `master`, puis pousser `master` sur GitHub :
+Exemple :
 
 ```bash
 git checkout master
-git merge <nom-de-la-branche-de-travail>
+git merge develop
 git push origin master
 ```
 
-Seul un `push` sur `master` déclenche les jobs `build-and-push-docker` et `deploy-to-aws`.
+GitHub Actions exécute alors :
 
-#### Étape 4 — Suivre le workflow GitHub Actions
+1. les tests et le linting ;
+2. la construction de l’image Docker ;
+3. la publication sur Docker Hub ;
+4. le déploiement sur Elastic Beanstalk.
 
-Dans GitHub :
+#### Étape 9 : vérification du déploiement
 
-```text
-Repository > Actions > workflow CI
-```
+Après le succès de la pipeline CI/CD :
 
-Sur une branche autre que `master`, vérifier que seul le job suivant passe en succès :
+1. aller dans `GitHub > Actions` ;
+2. vérifier que les jobs suivants sont en succès :
 
-```text
-Linting and tests
-```
+   * `lint-and-tests` ;
+   * `build-and-push-docker` ;
+   * `deploy-to-aws` ;
+3. aller dans `AWS > Elastic Beanstalk` ;
+4. ouvrir l’environnement `oc-lettings-env` ;
+5. vérifier que l’environnement est en état `Ok` ;
+6. ouvrir l’URL publique de l’application ;
+7. vérifier que le site est accessible et correctement stylé.
 
-Sur la branche `master`, vérifier que les trois jobs passent en succès :
-
-```text
-Linting and tests
-Build and push Docker image
-Deploy to AWS Elastic Beanstalk
-```
-
-Si un job échoue :
-
-1. ouvrir le job en erreur ;
-2. lire l’étape exacte qui a échoué ;
-3. corriger le problème ;
-4. relancer le workflow ou pousser un nouveau commit.
-
-#### Étape 5 — Vérifier l’image Docker publiée
-
-Après la réussite du job `build-and-push-docker`, vérifier sur Docker Hub qu’une nouvelle image a été publiée.
-
-Il est aussi possible de tester l’image localement :
-
-```bash
-docker pull lsfbr/oc-lettings:latest
-docker run --name oc-lettings-container --env-file .env -p 8000:8000 lsfbr/oc-lettings:latest
-```
-
-Puis ouvrir :
+Vérifier également que les fichiers statiques sont présents dans le bucket S3 dédié :
 
 ```text
-http://localhost:8000/
+S3 > oc-lettings-static > static/
 ```
 
-Le fichier `.env` local doit contenir au minimum :
+### Déploiement manuel de secours
 
-```env
-SECRET_KEY=your-local-secret-key
-DEBUG=False
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
-En local, ne pas définir `USE_S3=True` sauf si des identifiants AWS locaux sont configurés. Sans `USE_S3`, les fichiers statiques sont servis localement par WhiteNoise après `collectstatic`.
-
-#### Étape 6 — Vérifier le déploiement AWS
-
-Après la réussite du job `deploy-to-aws`, ouvrir la console AWS Elastic Beanstalk :
-
-```text
-Elastic Beanstalk > Applications > oc-lettings > oc-lettings-env
-```
-
-Vérifier que :
-
-* l’environnement est en état `Ok` ;
-* une nouvelle version d’application a été créée ;
-* l’URL publique Elastic Beanstalk est accessible ;
-* la page d’accueil s’affiche correctement ;
-* les fichiers CSS et images sont bien chargés ;
-* l’interface d’administration reste correctement stylée.
-
-Vérifier également le bucket S3 des fichiers statiques :
-
-```text
-S3 > lsfbr-oc-lettings-static > static/
-```
-
-Le dossier `static/` doit contenir les fichiers CSS, JavaScript, images et fichiers d’administration Django collectés par `collectstatic`.
-
-#### Étape 7 — En cas d’échec du déploiement
-
-Si le job GitHub Actions échoue pendant le déploiement AWS, consulter d’abord les logs du job `deploy-to-aws`.
-
-Si GitHub Actions indique une erreur AWS, vérifier ensuite dans AWS :
-
-```text
-Elastic Beanstalk > oc-lettings-env > Events
-Elastic Beanstalk > oc-lettings-env > Logs
-```
-
-Les erreurs les plus probables sont :
-
-* permission IAM manquante pour l’utilisateur GitHub Actions ;
-* variable d’environnement manquante dans Elastic Beanstalk ;
-* image Docker absente ou tag incorrect sur Docker Hub ;
-* erreur lors de `collectstatic` ;
-* mauvaise configuration du bucket S3 des fichiers statiques.
-
-#### Étape 8 — Déploiement manuel de secours
-
-Si le déploiement automatique n’est pas disponible, il est possible de déployer manuellement une image Docker déjà publiée.
-
-Créer un fichier `Dockerrun.aws.json` pointant vers l’image Docker à déployer :
+Si la pipeline CI/CD n’est pas disponible, créer un fichier `Dockerrun.aws.json` :
 
 ```json
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "lsfbr/oc-lettings:latest",
+    "Name": "<DOCKERHUB_USERNAME>/oc-lettings:latest",
     "Update": "true"
   },
   "Ports": [
@@ -437,9 +395,7 @@ Créer un fichier `Dockerrun.aws.json` pointant vers l’image Docker à déploy
 }
 ```
 
-Créer ensuite une archive contenant uniquement `Dockerrun.aws.json` à sa racine.
-
-Sous macOS ou Linux :
+Créer une archive contenant uniquement ce fichier à sa racine :
 
 ```bash
 zip deploy.zip Dockerrun.aws.json
@@ -451,41 +407,4 @@ Sous Windows PowerShell :
 Compress-Archive -Path .\Dockerrun.aws.json -DestinationPath .\deploy.zip -Force
 ```
 
-Vérifier le contenu de l’archive :
-
-```bash
-tar -tf deploy.zip
-```
-
-Le résultat attendu est :
-
-```text
-Dockerrun.aws.json
-```
-
-Puis, dans AWS Elastic Beanstalk :
-
-```text
-Elastic Beanstalk > oc-lettings-env > Upload and deploy
-```
-
-Envoyer `deploy.zip`, donner une étiquette de version explicite, puis lancer le déploiement.
-
-Après le déploiement manuel, effectuer les mêmes vérifications que pour le déploiement automatique.
-
-
-## Docker
-commandes utiles :
-- `docker build -t oc-lettings-site .`
-- `docker run --name oc-lettings-container-from-hub --env-file .env -p 8000:8000 lsfbr/oc-lettings:latest`
-- `docker push lsfbr/oc-lettings:latest`
-- `docker pull lsfbr/oc-lettings:latest`
-- `docker start <container_id>`
-- `docker restart <container_id>`
-- `docker stop <container_id>`
-- `docker ps`
-- `docker ps -a`
-- `docker rm <container_id>`
-- `docker rmi <image_id>`
-- `docker images`
-- `docker container prune`
+Envoyer ensuite `deploy.zip` depuis la console Elastic Beanstalk avec l’action de chargement et déploiement d’une nouvelle version.
