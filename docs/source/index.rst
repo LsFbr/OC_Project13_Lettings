@@ -1,17 +1,19 @@
-.. OC Lettings documentation master file, created by
-   sphinx-quickstart on Wed Jun  3 10:41:03 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 OC Lettings - Documentation technique
 =====================================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+OC Lettings est une application web Django destinée à la consultation de biens immobiliers et de profils utilisateurs.
 
+Cette documentation technique décrit l'installation du projet, son architecture, ses modèles de données, son utilisation, ainsi que les procédures de déploiement et de supervision.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Sommaire
 
+   installation
+   quickstart
+   technologies
+   architecture
+   database
+   interfaces
+   usage
+   deployment
