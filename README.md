@@ -118,9 +118,7 @@ Variables principales :
 | `SENTRY_RELEASE`          | Version applicative associée aux événements Sentry.                             |
 | `DJANGO_LOG_LEVEL`        | Niveau minimal des logs applicatifs.                                            |
 
-```env
-SENTRY_DSN=
-```
+Le fichier `.env` ne doit pas être commité.
 
 En production, les variables doivent être configurées directement dans l'environnement de la plateforme de déploiement.
 
@@ -508,7 +506,7 @@ Créer un fichier `Dockerrun.aws.json` à la racine du projet :
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "<DOCKERHUB_USERNAME>/oc-lettings:latest",
+    "Name": "lsfbr/oc-lettings:latest",
     "Update": "true"
   },
   "Ports": [
