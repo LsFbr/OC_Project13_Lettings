@@ -19,13 +19,9 @@ def index(request):
     """
     logger.info("Lettings index page requested")
 
-    try:
-        lettings_list = Letting.objects.all()
-        context = {'lettings_list': lettings_list}
-        return render(request, 'lettings/index.html', context)
-    except Exception:
-        logger.exception("500 Server Error while loading lettings index page")
-        raise
+    lettings_list = Letting.objects.all()
+    context = {'lettings_list': lettings_list}
+    return render(request, 'lettings/index.html', context)
 
 
 def letting(request, letting_id):
@@ -48,10 +44,4 @@ def letting(request, letting_id):
         return render(request, 'lettings/letting.html', context)
     except Http404:
         logger.warning("Letting not found for letting_id=%s", letting_id)
-        raise
-    except Exception:
-        logger.exception(
-            "500 Server Error while loading letting detail for letting_id=%s",
-            letting_id,
-        )
         raise
