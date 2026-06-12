@@ -7,24 +7,14 @@ import logging
 from django.shortcuts import render
 from django.conf import settings
 from django.urls import is_valid_path
-from sentry_sdk import capture_message, capture_exception
+from sentry_sdk import capture_message
 
 logger = logging.getLogger(__name__)
 
 
 def index(request):
-    """
-    Render the home page.
-
-    :param request: HTTP request
-    :return: Rendered home page template
-    """
-    try:
-        logger.info("Home page requested")
-        return render(request, 'index.html')
-    except Exception as e:
-        logger.warning(e)
-        raise
+    logger.info("Home page requested")
+    return render(request, "index.html")
 
 
 # For testing 500 errors
@@ -76,7 +66,4 @@ def custom_500(request):
     :param request: HTTP request
     :return: Rendered custom 500 page
     """
-
-    capture_exception(Exception("500 Server Error"))
-
     return render(request, "500.html", status=500)
