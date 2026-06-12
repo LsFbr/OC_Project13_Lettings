@@ -223,7 +223,7 @@ L'image Docker de l'application peut être récupérée depuis Docker Hub.
 docker pull lsfbr/oc-lettings:latest
 ```
 
-### Lancer l'image depuis Docker Hub
+### Lancer l'image téléchargée depuis Docker Hub
 
 ```bash
 docker run --name oc-lettings-container-from-hub --env-file .env -p 8000:8000 lsfbr/oc-lettings:latest
