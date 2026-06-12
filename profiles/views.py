@@ -19,13 +19,9 @@ def index(request):
     """
     logger.info("Profiles index page requested")
 
-    try:
-        profiles_list = Profile.objects.all()
-        context = {'profiles_list': profiles_list}
-        return render(request, 'profiles/index.html', context)
-    except Exception:
-        logger.exception("500 Server Error while loading profiles index page")
-        raise
+    profiles_list = Profile.objects.all()
+    context = {'profiles_list': profiles_list}
+    return render(request, 'profiles/index.html', context)
 
 
 def profile(request, username):
@@ -46,12 +42,3 @@ def profile(request, username):
     except Http404:
         logger.warning("Profile not found for username=%s", username)
         raise
-    except Exception:
-        logger.exception(
-            "500 Server Error while loading profile detail for username=%s",
-            username,
-        )
-        raise
-
-    context = {'profile': profile}
-    return render(request, 'profiles/profile.html', context)
