@@ -59,11 +59,11 @@ Dans le reste de la documentation sur le développement local, il est supposé q
 * `source venv_lettings/bin/activate`
 * `flake8`
 
-#### Tests unitaires
+#### Tests avec coverage
 
 * `cd /path/to/OC_Project13_Lettings`
 * `source venv_lettings/bin/activate`
-* `pytest`
+* `pytest --cov=. --cov-report=term-missing`
 
 #### Base de données
 
@@ -110,9 +110,6 @@ Variables principales :
 | `SECRET_KEY`              | Clé secrète Django. Ne doit pas être commitée.                                  |
 | `DEBUG`                   | Active ou désactive le mode debug.                                              |
 | `ALLOWED_HOSTS`           | Liste des hôtes autorisés à servir l'application.                               |
-| `USE_S3`                  | Active l'utilisation de S3 pour les fichiers statiques si la valeur est `True`. |
-| `AWS_STORAGE_BUCKET_NAME` | Nom du bucket S3 utilisé pour les fichiers statiques.                           |
-| `AWS_S3_REGION_NAME`      | Région AWS du bucket S3.                                                        |
 | `SENTRY_DSN`              | DSN du projet Sentry.                                                           |
 | `SENTRY_ENVIRONMENT`      | Nom de l'environnement Sentry, par exemple `development` ou `production`.       |
 | `SENTRY_RELEASE`          | Version applicative associée aux événements Sentry.                             |
@@ -143,6 +140,8 @@ DJANGO_LOG_LEVEL=INFO
 ```
 
 Le DSN ne doit pas être écrit directement dans le code source.
+
+Si la variable SENTRY_DSN n'est pas définie, Sentry ne sera pas activé.
 
 ## Déploiement local avec Docker
 
